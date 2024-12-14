@@ -1,0 +1,9 @@
+{
+    "name": "FluidLab",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/Lakatrazz/FluidLab",
+    "description": "Adds voxel based buoyancy and drag physics.",
+    "dependencies": [
+         "gnonme-BoneLib-3.0.0"
+    ]
+}
