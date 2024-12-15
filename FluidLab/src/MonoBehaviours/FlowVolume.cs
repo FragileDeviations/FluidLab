@@ -2,57 +2,30 @@
 
 using UnityEngine;
 
-#if MELONLOADER
 using MelonLoader;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
-#endif
 
-namespace FluidLab
+namespace FluidLab;
+
+[RegisterTypeInIl2Cpp]
+public class FlowVolume : MonoBehaviour
 {
-#if MELONLOADER
-    [RegisterTypeInIl2Cpp]
-#endif
-    public class FlowVolume : MonoBehaviour
+    public FlowVolume(IntPtr intPtr) : base(intPtr) { }
+
+    public Il2CppValueField<Vector3> center;
+
+    public Il2CppValueField<Vector3> size;
+
+    public Il2CppValueField<Vector3> flow;
+
+    public Vector3 Velocity
     {
-#if MELONLOADER
-        public FlowVolume(IntPtr intPtr) : base(intPtr) { }
-
-        public Il2CppValueField<Vector3> center;
-
-        public Il2CppValueField<Vector3> size;
-
-        public Il2CppValueField<Vector3> flow;
-
-        public Vector3 Velocity
+        get
         {
-            get
-            {
-                var transform = this.transform;
+            var transform = this.transform;
 
-                return transform.rotation * flow;
-            }
+            return transform.rotation * flow;
         }
-#else
-        [Tooltip("The center of the flow bounds.")]
-        public Vector3 center = Vector3.zero;
-
-        [Tooltip("The size of the flow bounds.")]
-        public Vector3 size = Vector3.one;
-
-        [Tooltip("The additional flow applied to the fluid in m/s, relative to this volume.")]
-        public Vector3 flow = Vector3.zero;
-#endif
-
-#if UNITY_EDITOR
-        public void OnDrawGizmos()
-        {
-            Gizmos.matrix = transform.localToWorldMatrix;
-
-            Gizmos.color = Color.blue;
-
-            Gizmos.DrawWireCube(center, size);
-        }
-#endif
     }
 }
