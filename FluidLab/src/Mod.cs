@@ -125,16 +125,20 @@ public class FluidLabMod : MelonMod
         float buoyancy = Mathf.Clamp01((crouch + 1f) * 0.5f);
         buoyancy *= buoyancy;
 
+        var physicsRig = rig.physicsRig;
+
         Vector3 handVelocity = Vector3.zero;
+
+        var headVelocity = physicsRig.torso.rbHead.velocity;
 
         if (_leftHandVoxelBody.SubmergedLiquid)
         {
-            handVelocity += controllerRig.leftController.GetRelativeVelocityInWorld();
+            handVelocity += physicsRig.leftHand.rb.velocity - headVelocity;
         }
 
         if (_rightHandVoxelBody.SubmergedLiquid)
         {
-            handVelocity += controllerRig.rightController.GetRelativeVelocityInWorld();
+            handVelocity += physicsRig.rightHand.rb.velocity - headVelocity;
         }
 
         handVelocity *= handVelocity.magnitude;
