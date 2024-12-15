@@ -15,7 +15,7 @@ public static class AscentManager
                 new Vector3(22.93945f, 6.998039f, 16.99998f), CommonDensities.Acid);
 
             acid.SplashVFXBarcode = BarcodeReferences.AcidSplashVFX;
-            acid.SplashSFXBarcode = BarcodeReferences.LavaSplashSFX;
+            acid.SplashSFXBarcode = BarcodeReferences.AcidSplashSFX;
             acid.AmbienceBarcode = BarcodeReferences.LavaAmbience;
         }
     }
