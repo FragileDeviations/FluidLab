@@ -142,11 +142,11 @@ public class FluidLabMod : MelonMod
 
         var velocityThisFrame = handVelocity * Time.deltaTime;
 
-        float velocityDot = Vector3.Dot(_cumulativeHandVelocity.normalized, _cumulativeHandVelocity.normalized);
+        float velocityDot = Vector3.Dot(_cumulativeHandVelocity.normalized, handVelocity.normalized);
 
         velocityDot = Mathf.Clamp((velocityDot + 1f) * 0.5f, 0.1f, 1f);
 
-        _cumulativeHandVelocity += velocityThisFrame * velocityDot;
+        _cumulativeHandVelocity += Vector3.ClampMagnitude(velocityThisFrame * velocityDot, 2f);
 
         foreach (var body in _playerVoxelBodies)
         {
