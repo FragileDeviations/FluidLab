@@ -5,8 +5,8 @@ using Il2CppSLZ.Marrow.Audio;
 using Il2CppSLZ.VRMK;
 
 using MelonLoader;
+
 using UnityEngine;
-using static Il2CppSLZ.Bonelab.Feedback_Audio;
 
 namespace FluidLab;
 
