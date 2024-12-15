@@ -80,10 +80,12 @@ namespace FluidLab
             float volume = Mathf.Clamp01(force / 20f);
             volume *= volume;
 
-            if (volume >= 0.05f)
+            if (volume < 0.05f)
             {
-                SpawnSplashEffect(position, size);
+                return;
             }
+
+            SpawnSplashEffect(position, size);
 
             // Play sound effect
             var monoDiscReference = new MonoDiscReference("Lakatrazz.FluidEffectsResource.MonoDisc.SmallSplash");

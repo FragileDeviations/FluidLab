@@ -114,33 +114,46 @@ public class FluidLabMod : MelonMod
         }
     }
 
+    private Vector3 _cumulativeHandVelocity = Vector3.zero;
     private void OnUpdatePlayer()
     {
         var rig = Player.RigManager;
 
-        float crouch = rig.controllerRig.GetCrouch();
+        var controllerRig = rig.controllerRig;
+
+        float crouch = controllerRig.GetCrouch();
 
         float buoyancy = Mathf.Clamp01((crouch + 1f) * 0.5f);
         buoyancy *= buoyancy;
 
+        Vector3 handVelocity = Vector3.zero;
+
+        if (_leftHandVoxelBody.SubmergedLiquid)
+        {
+            handVelocity += controllerRig.leftController.GetRelativeVelocityInWorld();
+        }
+
+        if (_rightHandVoxelBody.SubmergedLiquid)
+        {
+            handVelocity += controllerRig.rightController.GetRelativeVelocityInWorld();
+        }
+
+        handVelocity *= handVelocity.magnitude;
+
+        var velocityThisFrame = handVelocity * Time.deltaTime;
+
+        float velocityDot = Vector3.Dot(_cumulativeHandVelocity.normalized, _cumulativeHandVelocity.normalized);
+
+        velocityDot = Mathf.Clamp((velocityDot + 1f) * 0.5f, 0.1f, 1f);
+
+        _cumulativeHandVelocity += velocityThisFrame * velocityDot;
+
         foreach (var body in _playerVoxelBodies)
         {
             body.BuoyancyMultiplier = buoyancy;
+            body.ExtraVelocity = -_cumulativeHandVelocity;
         }
 
-        var physicsRig = rig.physicsRig;
-
-        OnUpdateHand(physicsRig.leftHand, _leftHandVoxelBody);
-        OnUpdateHand(physicsRig.rightHand, _rightHandVoxelBody);
-    }
-
-    private static void OnUpdateHand(Hand hand, VoxelBody body)
-    {
-        var controllerVelocity = hand.Controller.GetRelativeVelocityInWorld().sqrMagnitude;
-
-        float newDrag = Mathf.Lerp(1f, 50f, controllerVelocity / 4f);
-        float smoothDrag = Mathf.Lerp(body.DragMultiplier, newDrag, 1f - Mathf.Exp(-24f * Time.deltaTime));
-
-        body.DragMultiplier = smoothDrag;
+        _cumulativeHandVelocity = Vector3.Lerp(_cumulativeHandVelocity, Vector3.zero, 1f - Mathf.Exp(-4f * Time.deltaTime));
     }
 }

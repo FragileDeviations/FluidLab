@@ -52,6 +52,8 @@ namespace FluidLab
 
         public float DragMultiplier { get; set; } = 1f;
 
+        public Vector3 ExtraVelocity { get; set; } = Vector3.zero;
+
         [HideFromIl2Cpp]
         public event Action OnEnterLiquid, OnExitLiquid;
 
@@ -277,7 +279,7 @@ namespace FluidLab
             _bodyAngularVelocity = ToSystemVector3(Body.angularVelocity);
 
             _liquidDensity = _activeLiquid.Density;
-            _liquidVelocity = ToSystemVector3(_activeLiquid.Velocity);
+            _liquidVelocity = ToSystemVector3(_activeLiquid.Velocity + ExtraVelocity);
             _liquidHeight = _activeLiquid.Height;
 
             if (_activeFlow != null)
