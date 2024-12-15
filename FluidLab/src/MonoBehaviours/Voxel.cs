@@ -8,5 +8,7 @@ namespace FluidLab
     public class Voxel
     {
         public SystemVector3 position;
+
+        public float submersion;
     }
 }

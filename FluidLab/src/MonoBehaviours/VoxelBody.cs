@@ -50,8 +50,6 @@ namespace FluidLab
 
         public float BuoyancyMultiplier { get; set; } = 1f;
 
-        public float DragMultiplier { get; set; } = 1f;
-
         public Vector3 ExtraVelocity { get; set; } = Vector3.zero;
 
         [HideFromIl2Cpp]
@@ -243,6 +241,8 @@ namespace FluidLab
         private SystemVector3 _gravity = SystemVector3.Zero;
         private float _mass = 1f;
 
+        private float _fixedDeltaTime = 1f;
+
         public void OnPreFixedUpdate()
         {
             _validUpdate = true;
@@ -264,6 +264,8 @@ namespace FluidLab
                 _validUpdate = false;
                 return;
             }
+
+            _fixedDeltaTime = Time.fixedDeltaTime;
 
             _mass = Body.mass;
 
@@ -328,6 +330,8 @@ namespace FluidLab
                 float submergedHeight = liquidHeight - voxelHeight;
                 submergedHeight = Math.Clamp(submergedHeight / voxelSize.Y, 0f, 1f);
 
+                voxel.submersion = submergedHeight;
+
                 if (submergedHeight > 0f)
                 {
                     float displacedVolume = voxelVolume * submergedHeight;
@@ -357,44 +361,44 @@ namespace FluidLab
         private void SolveFluidDrag(SystemVector3 fluidVelocity, float fluidDensity, VoxelLevel voxelLevel)
         {
             var voxelSize = voxelLevel.voxelSize;
-        
+
+            float massAffector = (float)Math.Sqrt(_mass);
+
             // Drag
             var projectedVoxels = GetProjectedVoxels(SystemVector3.Normalize(fluidVelocity - _bodyVelocity), voxelLevel);
-            var voxelArea = GetVoxelArea(voxelLevel.voxelSize);
+            var voxelArea = GetVoxelArea(voxelSize);
             var dragCoefficient = 0.5f;
+
+            SystemVector3 accumulatedDrag = SystemVector3.Zero;
+            SystemVector3 centerOfDrag = SystemVector3.Zero;
+            int totalDrag = 0;
 
             foreach (var voxel in projectedVoxels)
             {
-                var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition;
+                float submergedHeight = voxel.submersion;
 
-                float voxelHeight = worldVoxel.Y - voxelSize.Y / 2f;
-                float liquidHeight = _liquidHeight;
-        
-                float submergedHeight = liquidHeight - voxelHeight;
-                submergedHeight = Math.Clamp(submergedHeight / voxelSize.Y, 0f, 1f);
-        
-                if (submergedHeight <= 0f)
-                {
-                    continue;
-                }
+                var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition;
 
                 var voxelVelocity = GetPointVelocity(_bodyCenterOfMass, _bodyVelocity, _bodyAngularVelocity, worldVoxel);
                 var flowVelocity = fluidVelocity - voxelVelocity;
         
-                var flowSquared = flowVelocity.LengthSquared();
+                var dynamicPressure = fluidDensity * flowVelocity.Length() * 0.5f;
         
-                var dynamicPressure = fluidDensity * flowSquared * 0.5f;
+                var drag = dragCoefficient * dynamicPressure * voxelArea * submergedHeight;
         
-                var decay = dragCoefficient * dynamicPressure * voxelArea * submergedHeight;
-        
-                var drag = 2f * (1f - (float)Math.Exp(-decay));
-        
-                var dragForce = drag * DragMultiplier * _mass * flowVelocity;
+                var dragForce = drag * massAffector * flowVelocity;
 
-                _totalForce += dragForce;
-                _centerOfForce += worldVoxel;
-                _forceCount++;
+                accumulatedDrag += dragForce;
+                centerOfDrag += worldVoxel;
+                totalDrag++;
             }
+
+            float maxDrag = _bodyVelocity.Length() / _fixedDeltaTime * _mass;
+            accumulatedDrag = SystemVector3.Normalize(accumulatedDrag) * Math.Min(accumulatedDrag.Length(), maxDrag);
+
+            _totalForce += accumulatedDrag;
+            _centerOfForce += centerOfDrag;
+            _forceCount += totalDrag;
         }
 
         private static SystemVector3 ToSystemVector3(Vector3 vector)
@@ -458,6 +462,11 @@ namespace FluidLab
         
             foreach (var voxel in sortedVoxels)
             {
+                if (voxel.submersion <= 0f)
+                {
+                    continue;
+                }
+
                 var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition;
 
                 worldVoxel = SystemVector3.Transform(worldVoxel, projectionOffset);
