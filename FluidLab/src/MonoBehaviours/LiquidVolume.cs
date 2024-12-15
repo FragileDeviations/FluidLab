@@ -69,11 +69,22 @@ namespace FluidLab
 
         public float Height => _height;
 
-        public string AmbienceBarcode = "Lakatrazz.FluidEffectsResource.MonoDisc.Underwater";
+        public string AmbienceBarcode { get; set; } = BarcodeReferences.WaterAmbience;
+
+        public string SplashVFXBarcode { get; set; } = BarcodeReferences.WaterSplashVFX;
+
+        public string SplashSFXBarcode { get; set; } = BarcodeReferences.WaterSplashSFX;
+
+        public bool SplashEnabled { get; set; } = true;
 
         [HideFromIl2Cpp]
         public void Splash(Vector3 position, float force, float size)
         {
+            if (!SplashEnabled)
+            {
+                return;
+            }
+
             // Get position on water's surface
             position.y = Height;
 
@@ -88,7 +99,7 @@ namespace FluidLab
             SpawnSplashEffect(position, size);
 
             // Play sound effect
-            var monoDiscReference = new MonoDiscReference("Lakatrazz.FluidEffectsResource.MonoDisc.SmallSplash");
+            var monoDiscReference = new MonoDiscReference(SplashSFXBarcode);
 
             if (monoDiscReference.DataCard != null)
             {
@@ -107,7 +118,7 @@ namespace FluidLab
         {
             var spawnable = new Spawnable()
             {
-                crateRef = new("Lakatrazz.FluidEffectsResource.Spawnable.WaterSplash"),
+                crateRef = new(SplashVFXBarcode),
                 policyData = null,
             };
 

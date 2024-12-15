@@ -15,7 +15,14 @@ public static class DungeonWarriorManager {
         if (LevelChecker.IsLevel("Dungeon Warrior")) 
         {
             // Create liquid triggers for all lava
-            LiquidCreator.CreateLiquids(Liquids);
+            foreach (var liquid in Liquids)
+            {
+                var lava = LiquidCreator.CreateLiquid(liquid.position, liquid.rotation, liquid.size, liquid.density);
+
+                lava.SplashVFXBarcode = BarcodeReferences.LavaSplashVFX;
+                lava.SplashSFXBarcode = BarcodeReferences.LavaSplashSFX;
+                lava.AmbienceBarcode = BarcodeReferences.LavaAmbience;
+            }
         }
     }
 }

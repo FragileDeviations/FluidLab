@@ -20,14 +20,6 @@ public struct LiquidDefinition
 
 public static class LiquidCreator
 {
-    public static void CreateLiquids(LiquidDefinition[] definitions) 
-    {
-        foreach (var definition in definitions) 
-        {
-            CreateLiquid(definition.position, definition.rotation, definition.size, definition.density);
-        }
-    }
-
     public static LiquidVolume CreateLiquid(Vector3 position, Quaternion rotation, Vector3 size, float density = 1000f) 
     {
         var liquid = new GameObject("Liquid Volume");
