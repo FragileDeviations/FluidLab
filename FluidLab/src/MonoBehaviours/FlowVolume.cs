@@ -23,16 +23,6 @@ namespace FluidLab
         public Il2CppValueField<Vector3> size;
 
         public Il2CppValueField<Vector3> flow;
-#else
-        [Tooltip("The center of the flow bounds.")]
-        public Vector3 center = Vector3.zero;
-
-        [Tooltip("The size of the flow bounds.")]
-        public Vector3 size = Vector3.one;
-
-        [Tooltip("The additional flow applied to the fluid in m/s, relative to this volume.")]
-        public Vector3 flow = Vector3.zero;
-#endif
 
         public Vector3 Velocity
         {
@@ -43,6 +33,16 @@ namespace FluidLab
                 return transform.rotation * flow;
             }
         }
+#else
+        [Tooltip("The center of the flow bounds.")]
+        public Vector3 center = Vector3.zero;
+
+        [Tooltip("The size of the flow bounds.")]
+        public Vector3 size = Vector3.one;
+
+        [Tooltip("The additional flow applied to the fluid in m/s, relative to this volume.")]
+        public Vector3 flow = Vector3.zero;
+#endif
 
 #if UNITY_EDITOR
         public void OnDrawGizmos()

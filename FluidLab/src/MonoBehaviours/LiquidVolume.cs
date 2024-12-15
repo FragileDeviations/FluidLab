@@ -31,20 +31,6 @@ namespace FluidLab
         public Il2CppValueField<Vector3> size;
 
         public Il2CppValueField<Vector3> flow;
-#else
-        [Min(0.001f)]
-        [Tooltip("The density of the liquid. Defaults to 1000, the density of water. Measured in kg/m^3.")]
-        public float density = 1000f;
-
-        [Tooltip("The center of the liquid bounds.")]
-        public Vector3 center = Vector3.zero;
-
-        [Tooltip("The size of the liquid bounds.")]
-        public Vector3 size = Vector3.one;
-
-        [Tooltip("The local default amount of water flow, in m/s.")]
-        public Vector3 flow = Vector3.zero;
-#endif
 
         public float Density => density;
 
@@ -138,6 +124,20 @@ namespace FluidLab
 
             _worldFlow = transform.rotation * flow;
         }
+#else
+        [Min(0.001f)]
+        [Tooltip("The density of the liquid. Defaults to 1000, the density of water. Measured in kg/m^3.")]
+        public float density = 1000f;
+
+        [Tooltip("The center of the liquid bounds.")]
+        public Vector3 center = Vector3.zero;
+
+        [Tooltip("The size of the liquid bounds.")]
+        public Vector3 size = Vector3.one;
+
+        [Tooltip("The local default amount of water flow, in m/s.")]
+        public Vector3 flow = Vector3.zero;
+#endif
 
 #if UNITY_EDITOR
         public void OnDrawGizmos()

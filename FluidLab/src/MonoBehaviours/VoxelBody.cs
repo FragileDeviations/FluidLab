@@ -28,7 +28,6 @@ namespace FluidLab
         private MarrowBody _marrowBody;
 
         public Rigidbody Body => _marrowBody._rigidbody;
-#endif
 
         [Serializable]
         public class VoxelLevel
@@ -59,9 +58,7 @@ namespace FluidLab
 
         private void Awake()
         {
-#if MELONLOADER
             _marrowBody = GetComponent<MarrowBody>();
-#endif
 
             RecalculateVoxels();
         }
@@ -69,11 +66,7 @@ namespace FluidLab
         [HideFromIl2Cpp]
         private Collider[] GetColliders()
         {
-#if MELONLOADER
             return _marrowBody.Colliders;
-#else
-            return GetComponentsInChildren<Collider>();
-#endif
         }
 
         public void RecalculateVoxels()
@@ -416,50 +409,19 @@ namespace FluidLab
             return SystemVector3.Cross(angularVelocity, point - worldCenterOfMass) + velocity;
         }
 
-#if UNITY_EDITOR
-        public void OnDrawGizmosSelected()
-        {
-            var voxelLevel = GetVoxels(0);
-
-            if (voxelLevel == null || _activeLiquid == null)
-            {
-                return;
-            }
-
-            var matrix = transform.localToWorldMatrix;
-            Gizmos.matrix = matrix;
-
-            foreach (var voxel in voxelLevel.voxels)
-            {
-                var worldVoxel = matrix.MultiplyPoint3x4(voxel.position - voxelLevel.voxelSize / 2f);
-
-                if (worldVoxel.y < _activeLiquid.GetHeight(worldVoxel))
-                {
-                    Gizmos.color = Color.green;
-                }
-                else
-                {
-                    Gizmos.color = Color.gray;
-                }
-
-                Gizmos.DrawWireCube(voxel.position, voxelLevel.voxelSize);
-            }
-        }
-#endif
-
         [HideFromIl2Cpp]
         private Voxel[] GetProjectedVoxels(SystemVector3 direction, VoxelLevel voxelLevel)
         {
             var voxels = voxelLevel.voxels;
             var voxelSize = voxelLevel.voxelSize;
-        
+
             var projectionOffset = MathUtilities.FromToRotation(SystemVector3.UnitZ, direction);
-        
+
             List<VoxelReference> projectedVoxels = new();
-        
+
             var directionInMatrix = SystemVector3.Transform(direction, SystemQuaternion.Inverse(_bodyRotation)) * 1000f;
             var sortedVoxels = voxels.OrderByDescending((voxel) => (voxel.position - directionInMatrix).LengthSquared());
-        
+
             foreach (var voxel in sortedVoxels)
             {
                 if (voxel.submersion <= 0f)
@@ -472,18 +434,18 @@ namespace FluidLab
                 worldVoxel = SystemVector3.Transform(worldVoxel, projectionOffset);
                 worldVoxel.Z = 0f;
                 worldVoxel = SystemVector3.Transform(worldVoxel, SystemQuaternion.Inverse(projectionOffset));
-        
+
                 projectedVoxels.Add(new VoxelReference()
                 {
                     voxel = voxel,
                     overridePosition = worldVoxel,
                 });
             }
-        
+
             List<VoxelReference> projectedWithoutDupes = new();
-        
+
             float maxDistanceSqr = voxelSize.LengthSquared() / 2f;
-        
+
             foreach (var voxel in projectedVoxels)
             {
                 if (!projectedWithoutDupes.Exists((nonDupe) => (voxel.overridePosition - nonDupe.overridePosition).LengthSquared() < maxDistanceSqr))
@@ -491,14 +453,14 @@ namespace FluidLab
                     projectedWithoutDupes.Add(voxel);
                 }
             }
-        
+
             Voxel[] finalVoxels = new Voxel[projectedWithoutDupes.Count];
-        
+
             for (var i = 0; i < projectedWithoutDupes.Count; i++)
             {
                 finalVoxels[i] = projectedWithoutDupes[i].voxel;
             }
-        
+
             return finalVoxels;
         }
 
@@ -593,5 +555,6 @@ namespace FluidLab
 
             return false;
         }
+#endif
     }
 }
