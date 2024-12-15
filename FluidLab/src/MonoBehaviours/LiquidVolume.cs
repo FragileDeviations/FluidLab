@@ -6,6 +6,12 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
+using Il2CppInterop.Runtime.Attributes;
+
+using Il2CppSLZ.Marrow.Pool;
+using Il2CppSLZ.Marrow.Data;
+using Il2CppSLZ.Marrow.Audio;
+using Il2CppSLZ.Marrow.Warehouse;
 #endif
 
 namespace FluidLab
@@ -62,6 +68,51 @@ namespace FluidLab
         public Vector3 WorldSize => _worldSize;
 
         public float Height => _height;
+
+        public string AmbienceBarcode = "Lakatrazz.FluidEffectsResource.MonoDisc.Underwater";
+
+        [HideFromIl2Cpp]
+        public void Splash(Vector3 position, float force, float size)
+        {
+            // Get position on water's surface
+            position.y = Height;
+
+            float volume = Mathf.Clamp01(force / 20f);
+            volume *= volume;
+
+            if (volume >= 0.05f)
+            {
+                SpawnSplashEffect(position, size);
+            }
+
+            // Play sound effect
+            var monoDiscReference = new MonoDiscReference("Lakatrazz.FluidEffectsResource.MonoDisc.SmallSplash");
+
+            if (monoDiscReference.DataCard != null)
+            {
+                monoDiscReference.DataCard.AudioClip.LoadAsset((Il2CppSystem.Action<AudioClip>)OnLoadedSound);
+            }
+
+            void OnLoadedSound(AudioClip clip)
+            {
+                float pitch = Mathf.Pow(UnityEngine.Random.Range(0.7f, 1.2f), volume);
+
+                Audio3dManager.PlayAtPoint(clip, position, Audio3dManager.impact, volume, pitch, new(0f), new(1f), new(1f));
+            }
+        }
+
+        private void SpawnSplashEffect(Vector3 position, float size)
+        {
+            var spawnable = new Spawnable()
+            {
+                crateRef = new("Lakatrazz.FluidEffectsResource.Spawnable.WaterSplash"),
+                policyData = null,
+            };
+
+            AssetSpawner.Register(spawnable);
+
+            AssetSpawner.Spawn(spawnable, position, Quaternion.identity, new(Vector3.one * size), null, true, new(0), null, null);
+        }
 
         private void LateUpdate()
         {

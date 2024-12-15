@@ -55,6 +55,8 @@ namespace FluidLab
         [HideFromIl2Cpp]
         public event Action OnEnterLiquid, OnExitLiquid;
 
+        public LiquidVolume SubmergedLiquid => _activeLiquid;
+
         private void Awake()
         {
 #if MELONLOADER
@@ -168,6 +170,29 @@ namespace FluidLab
             _activeLiquid = liquid;
 
             OnEnterLiquid?.Invoke();
+
+            if (_marrowBody.HasRigidbody)
+            {
+                Splash(liquid);
+            }
+        }
+
+        private void Splash(LiquidVolume liquid)
+        {
+            var velocity = Body.velocity;
+            float speed = velocity.magnitude;
+
+            if (speed < 2f)
+            {
+                return;
+            }
+
+            var bounds = _marrowBody.Bounds.size;
+            var size = Mathf.Max(bounds.x, bounds.y, bounds.z);
+
+            var position = Body.worldCenterOfMass;
+
+            liquid.Splash(position, speed * Body.mass, size);
         }
 
         public void UnregisterLiquid()

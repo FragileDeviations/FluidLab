@@ -2,6 +2,7 @@
 
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Audio;
+using Il2CppSLZ.Marrow.Warehouse;
 using Il2CppSLZ.VRMK;
 
 using MelonLoader;
@@ -18,6 +19,10 @@ public class FluidLabMod : MelonMod
 
     private VoxelBody _leftHandVoxelBody = null;
     private VoxelBody _rightHandVoxelBody = null;
+
+    private VoxelBody _headVoxelBody = null;
+
+    private AudioSource _headAmbience = null;
 
     public override void OnInitializeMelon()
     {
@@ -39,20 +44,54 @@ public class FluidLabMod : MelonMod
         _leftHandVoxelBody = physicsRig.leftHand.GetComponent<VoxelBody>();
         _rightHandVoxelBody = physicsRig.rightHand.GetComponent<VoxelBody>();
 
-        var headVoxelBody = physicsRig.m_head.GetComponent<VoxelBody>();
+        _headVoxelBody = physicsRig.m_head.GetComponent<VoxelBody>();
 
-        headVoxelBody.OnEnterLiquid += OnPlayerEnterLiquid;
-        headVoxelBody.OnExitLiquid += OnPlayerExitLiquid;
+        _headVoxelBody.OnEnterLiquid += OnPlayerEnterLiquid;
+        _headVoxelBody.OnExitLiquid += OnPlayerExitLiquid;
+
+        _headAmbience = physicsRig.m_head.gameObject.AddComponent<AudioSource>();
+        _headAmbience.spatialBlend = 0f;
+        _headAmbience.outputAudioMixerGroup = Audio3dManager.ambience;
+        _headAmbience.playOnAwake = false;
+        _headAmbience.loop = true;
+        _headAmbience.volume = 0.2f;
     }
 
     private void OnPlayerEnterLiquid()
     {
         Audio3dPlugin.Audio3dManager.SetLowPassFilter(1000f);
+
+        if (_headVoxelBody.SubmergedLiquid != null)
+        {
+            var monoDiscReference = new MonoDiscReference(_headVoxelBody.SubmergedLiquid.AmbienceBarcode);
+
+            if (monoDiscReference.DataCard != null)
+            {
+                monoDiscReference.DataCard.AudioClip.LoadAsset((Il2CppSystem.Action<AudioClip>)OnAmbienceLoaded);
+            }
+        }
+
+        void OnAmbienceLoaded(AudioClip clip)
+        {
+            if (_headAmbience == null)
+            {
+                return;
+            }
+
+            _headAmbience.clip = clip;
+            _headAmbience.Play();
+        }
     }
 
     private void OnPlayerExitLiquid()
     {
         Audio3dPlugin.Audio3dManager.SetLowPassFilter(22000f);
+
+        if (_headAmbience != null)
+        {
+            _headAmbience.Stop();
+            _headAmbience.clip = null;
+        }
     }
 
     private void OnSwitchAvatarPostfix(Avatar avatar)
