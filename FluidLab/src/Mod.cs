@@ -54,6 +54,8 @@ public class FluidLabMod : MelonMod
         _headAmbience.playOnAwake = false;
         _headAmbience.loop = true;
         _headAmbience.volume = 0.2f;
+
+        _cumulativeHandVelocity = Vector3.zero;
     }
 
     private void OnPlayerEnterLiquid()
@@ -149,7 +151,9 @@ public class FluidLabMod : MelonMod
 
         velocityDot = Mathf.Clamp((velocityDot + 1f) * 0.5f, 0.1f, 1f);
 
-        _cumulativeHandVelocity += Vector3.ClampMagnitude(velocityThisFrame * velocityDot, 2f);
+        _cumulativeHandVelocity += Vector3.ClampMagnitude(velocityThisFrame * velocityDot, 0.5f);
+
+        _cumulativeHandVelocity = Vector3.ClampMagnitude(_cumulativeHandVelocity, 10f);
 
         foreach (var body in _playerVoxelBodies)
         {
