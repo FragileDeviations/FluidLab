@@ -353,7 +353,7 @@ public class VoxelBody : MonoBehaviour
         float massAffector = (float)Math.Sqrt(_mass);
 
         // Drag
-        var projectedVoxels = GetProjectedVoxels(SystemVector3.Normalize(fluidVelocity - _bodyVelocity), voxelLevel);
+        var projectedVoxels = GetProjectedVoxels(MathUtilities.NormalizeSafe(fluidVelocity - _bodyVelocity), voxelLevel);
         var voxelArea = GetVoxelArea(voxelSize);
         var dragCoefficient = 0.5f;
 
@@ -382,7 +382,7 @@ public class VoxelBody : MonoBehaviour
         }
 
         float maxDrag = _bodyVelocity.Length() / _fixedDeltaTime * _mass;
-        accumulatedDrag = SystemVector3.Normalize(accumulatedDrag) * Math.Min(accumulatedDrag.Length(), maxDrag);
+        accumulatedDrag = MathUtilities.NormalizeSafe(accumulatedDrag) * Math.Min(accumulatedDrag.Length(), maxDrag);
 
         _totalForce += accumulatedDrag;
         _centerOfForce += centerOfDrag;

@@ -8,6 +8,16 @@ public static class MathUtilities
 {
     public const float Rad2Deg = (float)(360f / (Math.PI * 2f));
 
+    public static Vector3 NormalizeSafe(Vector3 vector)
+    {
+        if (vector.LengthSquared() <= 0.005f)
+        {
+            return Vector3.Zero;
+        }
+
+        return Vector3.Normalize(vector);
+    }
+
     public static Quaternion FromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
         return RotateTowards(LookRotation(fromDirection), LookRotation(toDirection), float.MaxValue);
