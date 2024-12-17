@@ -176,7 +176,7 @@ public class VoxelBody : MonoBehaviour
         }
 
         var bounds = _marrowBody.Bounds.size;
-        var size = Math.Min(Math.Min(bounds.x, bounds.y), bounds.z);
+        var size = (bounds.x + bounds.y + bounds.z) / 3f;
 
         var position = Body.worldCenterOfMass;
 
