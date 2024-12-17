@@ -61,7 +61,7 @@ public class LiquidVolume : MonoBehaviour
     public bool SplashEnabled { get; set; } = true;
 
     [HideFromIl2Cpp]
-    public void Splash(Vector3 position, float speed, float size)
+    public void Splash(Vector3 position, float force, float size)
     {
         if (!SplashEnabled)
         {
@@ -71,7 +71,7 @@ public class LiquidVolume : MonoBehaviour
         // Get position on water's surface
         position.y = Height;
 
-        float volume = Mathf.Clamp01(speed / 10f);
+        float volume = Mathf.Clamp01(force / 20f);
         volume *= volume;
 
         if (volume < 0.2f)

@@ -176,11 +176,11 @@ public class VoxelBody : MonoBehaviour
         }
 
         var bounds = _marrowBody.Bounds.size;
-        var size = Mathf.Max(bounds.x, bounds.y, bounds.z);
+        var size = Math.Min(Math.Min(bounds.x, bounds.y), bounds.z);
 
         var position = Body.worldCenterOfMass;
 
-        liquid.Splash(position, speed, size);
+        liquid.Splash(position, speed * Body.mass, size);
     }
 
     public void UnregisterLiquid()
