@@ -180,7 +180,7 @@ public class VoxelBody : MonoBehaviour
 
         var position = Body.worldCenterOfMass;
 
-        liquid.Splash(position, speed * Body.mass, size);
+        liquid.Splash(position, speed, size);
     }
 
     public void UnregisterLiquid()
