@@ -310,7 +310,10 @@ public class VoxelBody : MonoBehaviour
 
         foreach (var voxel in voxels)
         {
-            var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition + _bodyVelocity * _fixedDeltaTime;
+            var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition;
+
+            var voxelVelocity = GetPointVelocity(_bodyCenterOfMass, _bodyVelocity, _bodyAngularVelocity, worldVoxel);
+            worldVoxel += voxelVelocity * _fixedDeltaTime;
 
             float voxelHeight = worldVoxel.Y - voxelSize.Y / 2f;
             float liquidHeight = _liquidHeight;
