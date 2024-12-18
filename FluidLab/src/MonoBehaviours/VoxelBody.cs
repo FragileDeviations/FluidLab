@@ -310,7 +310,7 @@ public class VoxelBody : MonoBehaviour
 
         foreach (var voxel in voxels)
         {
-            var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition;
+            var worldVoxel = SystemVector3.Transform(voxel.position, _bodyRotation) + _bodyPosition + _bodyVelocity * _fixedDeltaTime;
 
             float voxelHeight = worldVoxel.Y - voxelSize.Y / 2f;
             float liquidHeight = _liquidHeight;
@@ -343,14 +343,15 @@ public class VoxelBody : MonoBehaviour
         }
 
         Body.AddForceAtPosition(ToUnityVector3(_totalForce), ToUnityVector3(_centerOfForce / _forceCount));
+
+        // Damping to stabilize angular velocity (especially on liquid surface)
+        Body.angularVelocity *= Math.Clamp(1f - (_fixedDeltaTime * 6f), 0f, 1f);
     }
 
     [HideFromIl2Cpp]
     private void SolveFluidDrag(SystemVector3 fluidVelocity, float fluidDensity, VoxelLevel voxelLevel)
     {
         var voxelSize = voxelLevel.voxelSize;
-
-        float massAffector = (float)Math.Sqrt(_mass);
 
         // Drag
         var projectedVoxels = GetProjectedVoxels(MathUtilities.NormalizeSafe(fluidVelocity - _bodyVelocity), voxelLevel);
@@ -374,7 +375,7 @@ public class VoxelBody : MonoBehaviour
     
             var drag = dragCoefficient * dynamicPressure * voxelArea * submergedHeight;
     
-            var dragForce = drag * massAffector * flowVelocity;
+            var dragForce = drag * flowVelocity;
 
             accumulatedDrag += dragForce;
             centerOfDrag += worldVoxel;
