@@ -99,8 +99,6 @@ public class FluidLabMod : MelonMod
     {
         foreach (var voxelBody in _playerVoxelBodies)
         {
-            voxelBody.UnregisterLiquid();
-
             voxelBody.RecalculateVoxels();
         }
     }

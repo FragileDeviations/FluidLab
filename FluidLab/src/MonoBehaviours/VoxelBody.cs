@@ -20,7 +20,8 @@ public class VoxelBody : MonoBehaviour
 {
     public VoxelBody(IntPtr intPtr) : base(intPtr) { }
 
-    private MarrowBody _marrowBody;
+    private MarrowBody _marrowBody = null;
+    private int _colliderCount = 0;
 
     public Rigidbody Body => _marrowBody._rigidbody;
 
@@ -54,6 +55,7 @@ public class VoxelBody : MonoBehaviour
     private void Awake()
     {
         _marrowBody = GetComponent<MarrowBody>();
+        _colliderCount = _marrowBody.Colliders.Count;
 
         RecalculateVoxels();
     }
@@ -66,6 +68,9 @@ public class VoxelBody : MonoBehaviour
 
     public void RecalculateVoxels()
     {
+        _liquidCount = 0;
+        _flowCount = 0;
+
         int voxelCount = 128 / _marrowBody.Entity.Bodies.Length;
 
         _voxelLevel = CutIntoVoxels(voxelCount);
@@ -87,6 +92,7 @@ public class VoxelBody : MonoBehaviour
         if ((liquidVolume == _activeLiquid || _activeLiquid == null) && liquidVolume != null)
         {
             _liquidCount++;
+            _liquidCount = Math.Min(_liquidCount, _colliderCount);
 
             if (_liquidCount == 1)
             {
@@ -102,6 +108,7 @@ public class VoxelBody : MonoBehaviour
         if ((flowVolume == _activeFlow || _activeFlow == null) && flowVolume != null)
         {
             _flowCount++;
+            _flowCount = Math.Min(_flowCount, _colliderCount);
 
             if (_flowCount == 1)
             {
