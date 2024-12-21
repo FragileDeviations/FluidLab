@@ -1,4 +1,4 @@
-**V1.0.1**
+**v1.0.1**
 - Fixed voxelization breaking some circuits
 - Improved stability of thin props on water
 
