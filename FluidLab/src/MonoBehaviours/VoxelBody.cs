@@ -29,7 +29,55 @@ public class VoxelBody : MonoBehaviour
     public class VoxelLevel
     {
         public Voxel[] voxels;
+
         public SystemVector3 voxelSize;
+        public AABB voxelAABB;
+    }
+
+    public struct AABB
+    {
+        public SystemVector3 c1;
+        public SystemVector3 c2;
+        public SystemVector3 c3;
+        public SystemVector3 c4;
+        public SystemVector3 c5;
+        public SystemVector3 c6;
+        public SystemVector3 c7;
+        public SystemVector3 c8;
+
+        public AABB(SystemVector3 size)
+        {
+            var extents = size * 0.5f;
+            var width = extents.X;
+            var height = extents.Y;
+            var depth = extents.Z;
+
+            this.c1 = new SystemVector3(width, height, depth);
+            this.c2 = new SystemVector3(-width, height, depth);
+            this.c3 = new SystemVector3(width, -height, depth);
+            this.c4 = new SystemVector3(width, height, -depth);
+            this.c5 = new SystemVector3(-width, -height, depth);
+            this.c6 = new SystemVector3(width, -height, -depth);
+            this.c7 = new SystemVector3(-width, height, -depth);
+            this.c8 = new SystemVector3(-width, -height, -depth);
+        }
+
+        public readonly SystemVector3 RotateAABB(SystemQuaternion rotation) 
+        {
+            var c1 = SystemVector3.Transform(this.c1, rotation);
+            var c2 = SystemVector3.Transform(this.c2, rotation);
+            var c3 = SystemVector3.Transform(this.c3, rotation);
+            var c4 = SystemVector3.Transform(this.c4, rotation);
+            var c5 = SystemVector3.Transform(this.c5, rotation);
+            var c6 = SystemVector3.Transform(this.c6, rotation);
+            var c7 = SystemVector3.Transform(this.c7, rotation);
+            var c8 = SystemVector3.Transform(this.c8, rotation);
+
+            var min = SystemVector3.Min(SystemVector3.Min(SystemVector3.Min(SystemVector3.Min(SystemVector3.Min(SystemVector3.Min(SystemVector3.Min(c1, c2), c3), c4), c5), c6), c7), c8);
+            var max = SystemVector3.Max(SystemVector3.Max(SystemVector3.Max(SystemVector3.Max(SystemVector3.Max(SystemVector3.Max(SystemVector3.Max(c1, c2), c3), c4), c5), c6), c7), c8);
+
+            return max - min;
+        }
     }
 
     public class VoxelReference
@@ -306,8 +354,12 @@ public class VoxelBody : MonoBehaviour
         }
 
         var voxelLevel = _voxelLevel;
+
         var voxels = voxelLevel.voxels;
         var voxelSize = voxelLevel.voxelSize;
+
+        var voxelDepth = voxelLevel.voxelAABB.RotateAABB(_bodyRotation).Y;
+        var voxelHalfDepth = voxelDepth * 0.5f;
 
         // Buoyancy
         var voxelVolume = voxelSize.X * voxelSize.Y * voxelSize.Z;
@@ -322,11 +374,11 @@ public class VoxelBody : MonoBehaviour
             var voxelVelocity = GetPointVelocity(_bodyCenterOfMass, _bodyVelocity, _bodyAngularVelocity, worldVoxel);
             worldVoxel += voxelVelocity * _fixedDeltaTime;
 
-            float voxelHeight = worldVoxel.Y - voxelSize.Y / 2f;
+            float voxelHeight = worldVoxel.Y - voxelHalfDepth;
             float liquidHeight = _liquidHeight;
 
             float submergedHeight = liquidHeight - voxelHeight;
-            submergedHeight = Math.Clamp(submergedHeight / voxelSize.Y, 0f, 1f);
+            submergedHeight = Math.Clamp(submergedHeight / voxelDepth, 0f, 1f);
 
             voxel.submersion = submergedHeight;
 
@@ -523,10 +575,13 @@ public class VoxelBody : MonoBehaviour
             }
         }
 
+        var systemVoxelSize = ToSystemVector3(voxelSize);
+
         return new VoxelLevel()
         {
             voxels = voxels.ToArray(),
-            voxelSize = new(voxelSize.x, voxelSize.y, voxelSize.z),
+            voxelSize = systemVoxelSize,
+            voxelAABB = new(systemVoxelSize),
         };
     }
 
