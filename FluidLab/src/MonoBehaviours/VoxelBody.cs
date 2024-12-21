@@ -478,30 +478,17 @@ public class VoxelBody : MonoBehaviour
     [HideFromIl2Cpp]
     private VoxelLevel CutIntoVoxels(int voxelCount)
     {
+        // Get transform values
+        var position = transform.position;
+        var rotation = transform.rotation;
+
         // Get minimum voxel number
         voxelCount = Math.Max(voxelCount, 4);
 
-        Quaternion initialRotation = transform.rotation;
-        transform.rotation = Quaternion.identity;
-
-        Physics.SyncTransforms();
-
-        Bounds bounds = new();
-        bool hasBounds = false;
+        _marrowBody.CalculateBounds();
+        Bounds bounds = _marrowBody.Bounds;
 
         var colliders = GetColliders();
-
-        foreach (var collider in colliders)
-        {
-            if (!hasBounds)
-            {
-                hasBounds = true;
-                bounds = collider.bounds;
-                continue;
-            }
-
-            bounds.Encapsulate(collider.bounds);
-        }
 
         var normalizedVoxelSize = 1f / (float)Math.Cbrt(voxelCount);
 
@@ -520,24 +507,21 @@ public class VoxelBody : MonoBehaviour
                     float pY = min.y + voxelSize.y * (0.5f + j);
                     float pZ = min.z + voxelSize.z * (0.5f + k);
 
-                    Vector3 point = new(pX, pY, pZ);
-                    if (IsPointInsideCollider(colliders, point))
-                    {
-                        var localPosition = Quaternion.Inverse(transform.rotation) * (point - transform.position);
+                    var localPoint = new Vector3(pX, pY, pZ);
+                    var worldPoint = (rotation * localPoint) + position;
 
+                    if (IsPointInsideCollider(colliders, worldPoint))
+                    {
                         var voxel = new Voxel()
                         {
-                            position = new(localPosition.x, localPosition.y, localPosition.z),
+                            position = ToSystemVector3(localPoint),
                         };
+
                         voxels.Add(voxel);
                     }
                 }
             }
         }
-
-        transform.rotation = initialRotation;
-
-        Physics.SyncTransforms();
 
         return new VoxelLevel()
         {
@@ -546,8 +530,7 @@ public class VoxelBody : MonoBehaviour
         };
     }
 
-    [HideFromIl2Cpp]
-    private bool IsPointInsideCollider(Collider[] colliders, Vector3 point)
+    private static bool IsPointInsideCollider(Collider[] colliders, Vector3 point)
     {
         foreach (var collider in colliders)
         {
