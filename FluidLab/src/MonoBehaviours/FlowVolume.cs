@@ -5,6 +5,7 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
+using Il2CppInterop.Runtime.Attributes;
 
 namespace FluidLab;
 
@@ -27,5 +28,18 @@ public class FlowVolume : MonoBehaviour
 
             return transform.rotation * flow;
         }
+    }
+
+    [HideFromIl2Cpp]
+    public event Action OnEnabledEvent, OnDisabledEvent;
+
+    private void OnEnable()
+    {
+        OnEnabledEvent?.Invoke();
+    }
+
+    private void OnDisable()
+    {
+        OnDisabledEvent?.Invoke();
     }
 }

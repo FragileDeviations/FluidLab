@@ -98,7 +98,86 @@ public class VoxelBody : MonoBehaviour
     [HideFromIl2Cpp]
     public event Action OnEnterLiquid, OnExitLiquid;
 
-    public LiquidVolume SubmergedLiquid => _activeLiquid;
+    public LiquidVolume SubmergedLiquid
+    {
+        get
+        {
+            return _submergedLiquid;
+        }
+        set
+        {
+            // Don't invoke any events if its the same liquid
+            if (_submergedLiquid == value)
+            {
+                return;
+            }
+
+            var previousLiquid = _submergedLiquid;
+
+            if (previousLiquid != null)
+            {
+                previousLiquid.OnDisabledEvent -= OnLiquidDisabled;
+
+                OnExitLiquid?.Invoke();
+            }
+
+            var newLiquid = value;
+
+            _submergedLiquid = newLiquid;
+
+            if (newLiquid != null)
+            {
+                newLiquid.OnDisabledEvent += OnLiquidDisabled;
+
+                OnEnterLiquid?.Invoke();
+
+                if (_marrowBody.HasRigidbody)
+                {
+                    Splash(newLiquid);
+                }
+            }
+            else
+            {
+                _liquidCount = 0;
+            }
+        }
+    }
+
+    public FlowVolume SubmergedFlow
+    {
+        get
+        {
+            return _submergedFlow;
+        }
+        set
+        {
+            // Don't invoke any events if its the same flow
+            if (_submergedFlow == value)
+            {
+                return;
+            }
+
+            var previousFlow = _submergedFlow;
+
+            if (previousFlow != null)
+            {
+                previousFlow.OnDisabledEvent -= OnFlowDisabled;
+            }
+
+            var newFlow = value;
+
+            _submergedFlow = newFlow;
+
+            if (newFlow != null)
+            {
+                newFlow.OnDisabledEvent += OnFlowDisabled;
+            }
+            else
+            {
+                _flowCount = 0;
+            }
+        }
+    }
 
     private void Awake()
     {
@@ -124,8 +203,8 @@ public class VoxelBody : MonoBehaviour
         _voxelLevel = CutIntoVoxels(voxelCount);
     }
 
-    private LiquidVolume _activeLiquid = null;
-    private FlowVolume _activeFlow = null;
+    private LiquidVolume _submergedLiquid = null;
+    private FlowVolume _submergedFlow = null;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -137,14 +216,14 @@ public class VoxelBody : MonoBehaviour
     {
         var liquidVolume = other.GetComponent<LiquidVolume>();
 
-        if ((liquidVolume == _activeLiquid || _activeLiquid == null) && liquidVolume != null)
+        if ((liquidVolume == _submergedLiquid || _submergedLiquid == null) && liquidVolume != null)
         {
             _liquidCount++;
             _liquidCount = Math.Min(_liquidCount, _colliderCount);
 
             if (_liquidCount == 1)
             {
-                RegisterLiquid(liquidVolume);
+                SubmergedLiquid = liquidVolume;
             }
         }
     }
@@ -153,14 +232,14 @@ public class VoxelBody : MonoBehaviour
     {
         var flowVolume = other.GetComponent<FlowVolume>();
 
-        if ((flowVolume == _activeFlow || _activeFlow == null) && flowVolume != null)
+        if ((flowVolume == SubmergedFlow || SubmergedFlow == null) && flowVolume != null)
         {
             _flowCount++;
             _flowCount = Math.Min(_flowCount, _colliderCount);
 
             if (_flowCount == 1)
             {
-                _activeFlow = flowVolume;
+                SubmergedFlow = flowVolume;
             }
         }
     }
@@ -173,51 +252,48 @@ public class VoxelBody : MonoBehaviour
 
     private void CheckLiquidExit(Collider other)
     {
-        if (!_activeLiquid)
+        if (!_submergedLiquid)
         {
             return;
         }
 
-        if (other.gameObject == _activeLiquid.gameObject)
+        if (other.gameObject == _submergedLiquid.gameObject)
         {
             _liquidCount--;
 
             if (_liquidCount <= 0)
             {
-                UnregisterLiquid();
+                SubmergedLiquid = null;
             }
         }
     }
 
     private void CheckFlowExit(Collider other)
     {
-        if (!_activeFlow)
+        if (!SubmergedFlow)
         {
             return;
         }
 
-        if (other.gameObject == _activeFlow.gameObject)
+        if (other.gameObject == SubmergedFlow.gameObject)
         {
             _flowCount--;
 
             if (_flowCount <= 0)
             {
-                _activeFlow = null;
-                _flowCount = 0;
+                SubmergedFlow = null;
             }
         }
     }
 
-    public void RegisterLiquid(LiquidVolume liquid)
+    private void OnLiquidDisabled()
     {
-        _activeLiquid = liquid;
+        SubmergedLiquid = null;
+    }
 
-        OnEnterLiquid?.Invoke();
-
-        if (_marrowBody.HasRigidbody)
-        {
-            Splash(liquid);
-        }
+    private void OnFlowDisabled()
+    {
+        SubmergedFlow = null;
     }
 
     private void Splash(LiquidVolume liquid)
@@ -238,31 +314,18 @@ public class VoxelBody : MonoBehaviour
         liquid.Splash(position, speed, size);
     }
 
-    public void UnregisterLiquid()
-    {
-        _activeLiquid = null;
-
-        _liquidCount = 0;
-
-        OnExitLiquid?.Invoke();
-    }
-
     private void OnDisable()
     {
-        UnregisterLiquid();
-
-        _activeFlow = null;
-        _flowCount = 0;
+        SubmergedLiquid = null;
+        SubmergedFlow = null;
 
         VoxelBodyManager.VoxelBodies.Remove(this);
     }
 
     private void OnEnable()
     {
-        UnregisterLiquid();
-
-        _activeFlow = null;
-        _flowCount = 0;
+        SubmergedLiquid = null;
+        SubmergedFlow = null;
 
         VoxelBodyManager.VoxelBodies.Add(this);
     }
@@ -296,7 +359,7 @@ public class VoxelBody : MonoBehaviour
             return;
         }
 
-        if (!_activeLiquid)
+        if (!_submergedLiquid)
         {
             _validUpdate = false;
             return;
@@ -323,13 +386,13 @@ public class VoxelBody : MonoBehaviour
         _bodyVelocity = ToSystemVector3(Body.velocity);
         _bodyAngularVelocity = ToSystemVector3(Body.angularVelocity);
 
-        _liquidDensity = _activeLiquid.Density;
-        _liquidVelocity = ToSystemVector3(_activeLiquid.Velocity + ExtraVelocity);
-        _liquidHeight = _activeLiquid.Height;
+        _liquidDensity = _submergedLiquid.Density;
+        _liquidVelocity = ToSystemVector3(_submergedLiquid.Velocity + ExtraVelocity);
+        _liquidHeight = _submergedLiquid.Height;
 
-        if (_activeFlow != null)
+        if (_submergedFlow != null)
         {
-            _flowVelocity = ToSystemVector3(_activeFlow.Velocity);
+            _flowVelocity = ToSystemVector3(_submergedFlow.Velocity);
         }
         else
         {
@@ -530,6 +593,17 @@ public class VoxelBody : MonoBehaviour
     [HideFromIl2Cpp]
     private VoxelLevel CutIntoVoxels(int voxelCount)
     {
+        // Calculating the bounds of bodies with null colliders can cause weird physics issues
+        if (_marrowBody.HasNullColliders())
+        {
+            return new VoxelLevel()
+            {
+                voxels = Array.Empty<Voxel>(),
+                voxelSize = SystemVector3.One,
+                voxelAABB = new(SystemVector3.One),
+            };
+        }
+
         // Get transform values
         var position = transform.position;
         var rotation = transform.rotation;

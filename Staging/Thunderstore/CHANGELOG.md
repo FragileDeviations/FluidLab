@@ -1,3 +1,7 @@
+**v1.0.2**
+- Fixed issues with liquid/flow volumes being disabled
+- Fixed physics issues when Marrow Bodies and Entities had null colliders
+
 **v1.0.1**
 - Fixed voxelization breaking some circuits
 - Improved stability of thin props on water

@@ -61,6 +61,9 @@ public class LiquidVolume : MonoBehaviour
     public bool SplashEnabled { get; set; } = true;
 
     [HideFromIl2Cpp]
+    public event Action OnEnabledEvent, OnDisabledEvent;
+
+    [HideFromIl2Cpp]
     public void Splash(Vector3 position, float speed, float size)
     {
         if (!SplashEnabled)
@@ -111,6 +114,16 @@ public class LiquidVolume : MonoBehaviour
         AssetSpawner.Register(spawnable);
 
         AssetSpawner.Spawn(spawnable, position, Quaternion.identity, new(Vector3.one * size), null, true, new(0), null, null);
+    }
+
+    private void OnEnable()
+    {
+        OnEnabledEvent?.Invoke();
+    }
+
+    private void OnDisable()
+    {
+        OnDisabledEvent?.Invoke();
     }
 
     private void LateUpdate()
