@@ -593,8 +593,8 @@ public class VoxelBody : MonoBehaviour
     [HideFromIl2Cpp]
     private VoxelLevel CutIntoVoxels(int voxelCount)
     {
-        // Calculating the bounds of bodies with null colliders can cause weird physics issues
-        if (_marrowBody.HasNullColliders())
+        // Calculating the bounds of bodies with null colliders or no rigidbody can cause weird physics issues
+        if (_marrowBody.HasNullColliders() || !_marrowBody.HasRigidbody)
         {
             return new VoxelLevel()
             {
@@ -612,6 +612,7 @@ public class VoxelBody : MonoBehaviour
         voxelCount = Math.Max(voxelCount, 4);
 
         _marrowBody.CalculateBounds();
+
         Bounds bounds = _marrowBody.Bounds;
 
         var colliders = GetColliders();

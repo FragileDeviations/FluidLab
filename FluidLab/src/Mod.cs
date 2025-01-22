@@ -12,7 +12,7 @@ namespace FluidLab;
 
 public class FluidLabMod : MelonMod
 {
-    public const string Version = "1.0.1";
+    public const string Version = "1.0.3";
 
     private VoxelBody[] _playerVoxelBodies = null;
 
