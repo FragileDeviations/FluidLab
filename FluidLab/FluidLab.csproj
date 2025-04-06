@@ -33,6 +33,9 @@
     <Reference Include="BoneLib">
       <HintPath>$(BONELAB_DIR)\Mods\BoneLib.dll</HintPath>
     </Reference>
+    <Reference Include="Il2CppUltEvents">
+      <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppUltEvents.dll</HintPath>
+    </Reference>
     <Reference Include="Il2CppInterop.Common">
       <HintPath>$(BONELAB_DIR)\MelonLoader\net6\Il2CppInterop.Common.dll</HintPath>
     </Reference>
