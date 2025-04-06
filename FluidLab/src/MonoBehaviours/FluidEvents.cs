@@ -25,7 +25,7 @@ public class FluidEvents : MonoBehaviour
         {
             var avatarRig = avatar.transform.GetParent().GetComponent<RigManager>();
             if (avatarRig == null) return; // if it can't find the rigmanager then it's probably a mirror rig
-            _voxelBody = avatarRig.physicsRig._feetRb.GetComponent<VoxelBody>(); // feet enter the water first
+            _voxelBody = avatarRig.physicsRig.m_footLf.GetComponent<VoxelBody>(); // feet enter the water first
         }
         else
         {
