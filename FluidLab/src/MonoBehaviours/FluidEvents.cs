@@ -17,6 +17,7 @@ public class FluidEvents : MonoBehaviour
     public Il2CppReferenceField<UltEventHolder> onFluidExitedHolder;
     
     private VoxelBody _voxelBody;
+    private VoxelBody _voxelBody2;
 
     private void Start()
     {
@@ -25,7 +26,8 @@ public class FluidEvents : MonoBehaviour
         {
             var avatarRig = avatar.transform.GetParent().GetComponent<RigManager>();
             if (avatarRig == null) return; // if it can't find the rigmanager then it's probably a mirror rig
-            _voxelBody = avatarRig.physicsRig.m_footLf.GetComponent<VoxelBody>(); // feet enter the water first
+            _voxelBody = avatarRig.physicsRig._feetRb.GetComponent<VoxelBody>(); // feet enter the water first
+            _voxelBody2 = avatarRig.physicsRig.m_footLf.GetComponent<VoxelBody>(); // for when player is ragdolled
         }
         else
         {
@@ -35,6 +37,9 @@ public class FluidEvents : MonoBehaviour
         if (_voxelBody == null) return;
         _voxelBody.OnEnterLiquid += OnFluidEnter;
         _voxelBody.OnExitLiquid += OnFluidExit;
+        if (_voxelBody2 == null) return;
+        _voxelBody2.OnEnterLiquid += OnFluidEnter;
+        _voxelBody2.OnExitLiquid += OnFluidExit;
     }
 
     private void OnFluidEnter()
