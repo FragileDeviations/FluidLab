@@ -18,13 +18,15 @@ public class FluidEvents : MonoBehaviour
     
     private VoxelBody _voxelBody;
     private VoxelBody _voxelBody2;
+    private Avatar _avatar;
 
     private void Start()
     {
-        var avatar = GetComponent<Avatar>();
-        if (avatar != null)
+        _avatar = GetComponent<Avatar>();
+        
+        if (_avatar != null)
         {
-            var avatarRig = avatar.transform.GetParent().GetComponent<RigManager>();
+            var avatarRig = _avatar.transform.GetParent().GetComponent<RigManager>();
             if (avatarRig == null) return; // if it can't find the rigmanager then it's probably a mirror rig
             _voxelBody = avatarRig.physicsRig._feetRb.GetComponent<VoxelBody>(); // feet enter the water first
             _voxelBody2 = avatarRig.physicsRig.m_footLf.GetComponent<VoxelBody>(); // for when player is ragdolled
@@ -33,13 +35,29 @@ public class FluidEvents : MonoBehaviour
         {
             _voxelBody = GetComponent<VoxelBody>();
         }
-        
+    }
+    
+    private void OnEnable()
+    {
         if (_voxelBody == null) return;
         _voxelBody.OnEnterLiquid += OnFluidEnter;
         _voxelBody.OnExitLiquid += OnFluidExit;
         if (_voxelBody2 == null) return;
         _voxelBody2.OnEnterLiquid += OnFluidEnter;
         _voxelBody2.OnExitLiquid += OnFluidExit;
+    }
+
+    private void OnDisable()
+    {
+        if (_voxelBody)
+        {
+            _voxelBody.OnEnterLiquid -= OnFluidEnter;
+            _voxelBody.OnExitLiquid -= OnFluidExit;
+        }
+
+        if (!_voxelBody2) return;
+        _voxelBody2.OnEnterLiquid -= OnFluidEnter;
+        _voxelBody2.OnExitLiquid -= OnFluidExit;
     }
 
     private void OnFluidEnter()
