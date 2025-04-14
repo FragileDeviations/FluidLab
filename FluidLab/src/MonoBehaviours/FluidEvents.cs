@@ -20,7 +20,7 @@ public class FluidEvents : MonoBehaviour
     private VoxelBody _voxelBody2;
     private Avatar _avatar;
 
-    private void Start()
+    private void Awake()
     {
         _avatar = GetComponent<Avatar>();
         
